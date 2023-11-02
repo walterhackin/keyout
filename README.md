@@ -13,13 +13,13 @@
 1. Клонируйте репозиторий на ваш компьютер:
 
 ```bash
-git clone <https://github.com/walterhackin/keyout>
+git clone https://github.com/walterhackin/keyout
 ```
 
 2. Перейдите в директорию проекта:
 
 ```bash
-cd <PATH/keyout>
+cd keyout
 ```
 
 3. Запустите основной скрипт:
