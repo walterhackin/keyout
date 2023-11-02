@@ -4,6 +4,11 @@ import matplotlib.pyplot as plt
 
 class Statistics:
     def __init__(self):
+        """
+        Инициализация класса.
+        - Создает раскладку клавиатуры.
+        - Читает данные о количестве ошибок по каждой клавише из файла.
+        """
         self.keyboard_layout = [
             ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '+'],
             ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '(', ')', '\\'],
@@ -12,36 +17,66 @@ class Statistics:
             [' ']
         ]
         self.layout_size = sum([len(i) for i in self.keyboard_layout])
-        data_file = open('wrong_key_data.txt', 'r')
+        data_file = open('data/wrong_key_data.txt', 'r')
         self.data = list(map(lambda x : int(x.replace('\n', '')), data_file.readlines()))
         data_file.close()
         self.wrong_statistics = {}
+        self.read_data()
+
+    def read_data(self):
         index = 0
         for line in self.keyboard_layout:
             for letter in line:
                 self.wrong_statistics[letter] = self.data[index]
                 index += 1
-
     def get_index(self, letter):
+        """
+        Получает индекс буквы в списке статистики ошибок.
+        :param letter: Буква, для которой требуется получить индекс.
+        :return: Индекс буквы.
+        """
         return list(self.wrong_statistics.keys()).index(letter)
 
     def add_wrong(self, letter):
+        """
+        Увеличивает счетчик ошибок для заданной клавиши.
+        :param letter: Клавиша, для которой требуется увеличить счетчик ошибок.
+        """
         self.data[self.get_index(letter)] += 1
 
     def get_wrong_count(self, letter):
+        """
+        Получает количество ошибок для заданной клавиши.
+
+        :param letter: Клавиша, для которой требуется узнать количество ошибок.
+        :return: Количество ошибок.
+        """
         return self.wrong_statistics[letter]
 
     def get_layout(self):
+        """
+        Возвращает раскладку клавиатуры.
+
+        :return: Раскладка клавиатуры.
+        """
         return self.keyboard_layout
 
     def refresh_wrong_count(self):
-        data_file = open('wrong_key_data.txt', 'w')
+        """
+        Обновляет файл с данными о количестве ошибок.
+        """
+        data_file = open('data/wrong_key_data.txt', 'w')
         for i in self.data:
             data_file.write(str(i) + '\n')
 
         data_file.close()
 
     def show_heatmap(self):
+        """
+        Показывает тепловую карту ошибок по клавиатуре.
+        """
+        self.refresh_wrong_count()
+        self.read_data()
         layout = self.get_layout()
         heatmap_data = []
         max_length = max(len(row) for row in layout)

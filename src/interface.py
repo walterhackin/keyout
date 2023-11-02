@@ -2,31 +2,55 @@ import curses
 import time
 import random
 import datetime
-from func_keys import FunctionalKeys
-from stat_keys import Statistics
+from src.func_keys import FunctionalKeys
+from src.stat_keys import Statistics
 
 class Interface:
-    def __init__(self, stdscr):
-        self.stdscr = stdscr
+    """
+       Основной интерфейс клавиатурного тренажера.
+    """
+    def __init__(self, win):
+        """
+        Инициализация интерфейса.
+        Args:
+            win: Основное окно curses.
+        """
+        self.win = win
         curses.cbreak()
         curses.start_color()
         curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
         curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
         curses.init_pair(3, curses.COLOR_WHITE, curses.COLOR_BLACK)
-        self.stdscr.keypad(True)
+        self.win.keypad(True)
         self.text = []
-        self.max_y, self.max_x = self.stdscr.getmaxyx()
+        self.max_y, self.max_x = self.win.getmaxyx()
         self.fk = FunctionalKeys()
         self.stat = Statistics()
 
     def clear(self):
-        self.stdscr.clear()
+        """
+        Очистка экрана.
+        """
+        self.win.clear()
 
     def insert_string(self, string, x, y):
-        self.stdscr.addstr(x, y, string)
+        """
+        Вставка строки на экране на определенные координаты.
+
+        Args:
+            string: Текст для вывода.
+            x, y: Координаты на экране.
+        """
+        self.win.addstr(x, y, string)
         self.refresh()
 
     def read_data(self, path):
+        """
+        Чтение данных из файла.
+
+        Args:
+            path: Путь к файлу для чтения.
+        """
         f = open(path, "r")
         for line in f:
             self.text.append(
@@ -38,36 +62,53 @@ class Interface:
         f.close()
 
     def get_text(self):
+        """
+        Получить случайный текст из сохраненного списка.
+
+        Returns:
+            Строка с текстом.
+        """
         return random.choice(self.text)
 
     def insert_colored(self, string, x, y, color):
-        self.stdscr.attron(curses.color_pair(color))
+        """
+        Вставка строки определенного цвета на экране на определенные координаты.
+
+        Args:
+            string: Текст для вывода.
+            x, y: Координаты на экране.
+            color: Индекс цвета.
+        """
+        self.win.attron(curses.color_pair(color))
         self.insert_string(string, x, y)
-        self.stdscr.attroff(curses.color_pair(color))
+        self.win.attroff(curses.color_pair(color))
         self.refresh()
 
     def refresh(self):
-        self.stdscr.refresh()
+        self.win.refresh()
 
     def move(self, x, y):
-        self.stdscr.move(x, y)
+        self.win.move(x, y)
         self.refresh()
 
     def refresh_wrong_count(self, wrong_count):
-        tmp_x, tmp_y = self.stdscr.getyx()
+        tmp_x, tmp_y = self.win.getyx()
         self.insert_colored(str(wrong_count), self.max_y - 2, 19, 3)
         self.move(tmp_x, tmp_y)
 
     def refresh_time(self, start, i):
         delta = time.time() - start
-        tmp_x, tmp_y = self.stdscr.getyx()
+        tmp_x, tmp_y = self.win.getyx()
         self.insert_string(str(round(i / delta, 3)), self.max_y - 1, 22)
         self.move(tmp_x, tmp_y)
         return round(i / delta, 3)
 
     def start_program(self):
+        """
+        Начало работы программы: главное меню.
+        """
         self.clear()
-        self.read_data("texts.txt")
+        self.read_data("data/texts.txt")
         self.insert_colored(
             "{0}Добро пожаловать в KeyOut!\n\n\nДля того, чтобы начать игру, нажмите Enter.\n\n\n"
             "Для просмотра статистики нажмите букву s, чтобы открыть тепловую карту, нажмите n\n\n\n".format(' ' * int((self.max_x / 3))),
@@ -78,7 +119,7 @@ class Interface:
         self.insert_colored('Нажмите ESC чтобы выйти', self.max_y - 3, 0, 2)
         self.move(0,0)
         self.refresh()
-        c = self.stdscr.getch()
+        c = self.win.getch()
         if c == self.fk.ENTER_CODE:
             self.clear()
             self.insert_string(
@@ -98,6 +139,9 @@ class Interface:
             self.start_program()
 
     def run_level(self):
+        """
+        Запуск уровня тренажера.
+        """
         text = [self.get_text()]
         self.insert_colored(text[0], 0, 0, 0)
         self.insert_colored("Количество ошибок: 0", self.max_y - 2, 0, 3)
@@ -113,7 +157,7 @@ class Interface:
             for i in range(len(word)):
                 while True:
                     delta_time = self.refresh_time(start, i)
-                    pressed = self.stdscr.getch()
+                    pressed = self.win.getch()
                     click_count += 1
                     if pressed == ord(word[i]):
                         self.insert_colored(word[i], x, y, 1)
@@ -149,6 +193,12 @@ class Interface:
         )
 
     def show_round_statistics(self, statistics):
+        """
+        Показ статистики после завершения раунда.
+
+        Args:
+            statistics: Список со статистикой раунда.
+        """
         self.clear()
         self.insert_colored(
             "Игра окончена!\nВаша статистика:\nскорость печати - {0}\nколичество ошибок - {1},\nпроцент"
@@ -161,7 +211,7 @@ class Interface:
         )
         self.insert_colored("Хотите сохранить статистику? [Y/n]", 5, 0, 1)
         while True:
-            pressed = self.stdscr.getch()
+            pressed = self.win.getch()
             if pressed == ord("Y"):
                 self.save_statistics(statistics)
                 self.stat.refresh_wrong_count()
@@ -170,13 +220,21 @@ class Interface:
                 self.start_program()
 
     def save_statistics(self, statistics):
-        f = open("stats.txt", "a")
+        """
+        Сохранение статистики в файл.
+        Args:
+            statistics: Список со статистикой раунда.
+        """
+        f = open("data/stats.txt", "a")
         statistics.append(datetime.datetime.now().strftime("%H:%M;%D"))
         f.write(";".join(map(str, statistics)))
         f.write("\n")
         f.close()
 
     def show_statistic(self):
+        """
+        Отображение сохраненной статистики.
+        """
         self.clear()
         self.refresh()
         self.insert_colored(
@@ -187,7 +245,7 @@ class Interface:
         )
         x, y = 1, 0
         index = 0
-        stat_file = open("stats.txt", "r")
+        stat_file = open("data/stats.txt", "r")
         lines = stat_file.readlines()
         can_include, quit_msg_rows = self.calculate_space()
         for line in lines:
@@ -200,7 +258,7 @@ class Interface:
                     1,
                 )
                 while True:
-                    c = self.stdscr.getch()
+                    c = self.win.getch()
                     if c == self.fk.ENTER_CODE:
                         self.clear()
                         self.refresh()
@@ -225,13 +283,18 @@ class Interface:
             "Для выхода в главное меню нажмите q", self.max_y - 1 - quit_msg_rows, y, 1
         )
         while True:
-            c = self.stdscr.getch()
+            c = self.win.getch()
             if c == ord("q"):
                 self.start_program()
             else:
                 continue
 
     def calculate_space(self):
+        """
+        Расчет доступного пространства на экране.
+        Returns:
+            Количество доступных строк, количество строк, необходимых для вывода сообщения о выходе.
+        """
         quit_message_len = 85
         for_quit_message_needs = quit_message_len // self.max_x
         available = (self.max_y - 1) - for_quit_message_needs - 1
