@@ -267,6 +267,8 @@ class Interface:
                         x = 0
                         index = 0
                         break
+                    if c == ord('q'):
+                        self.start_program()
 
             row = line.split(";")
             self.insert_colored(
