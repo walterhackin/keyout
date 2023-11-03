@@ -99,7 +99,7 @@ class Statistics:
 
         fig, ax = plt.subplots()
         cax = ax.matshow(heatmap_data, cmap='inferno')
-        fig.colorbar(cax, shrink=.3)
+        fig.colorbar(cax, shrink=.417)
 
         ax.set_xticks(np.arange(len(layout[0])))
         ax.set_yticks(np.arange(len(layout)))

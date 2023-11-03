@@ -1,4 +1,5 @@
 import curses
+import codecs
 import time
 import random
 import datetime
@@ -51,13 +52,13 @@ class Interface:
         Args:
             path: Путь к файлу для чтения.
         """
-        f = open(path, "r")
+        f = codecs.open(path, "r", 'utf-8')
         for line in f:
             self.text.append(
-                line.replace("”", "'")
-                .replace("’", "'")
-                .replace("“", "'")
-                .replace("‘", "'")
+                line.replace("”", '')
+                .replace("’", '')
+                .replace("“", '')
+                .replace("‘", '')
             )
         f.close()
 
@@ -97,6 +98,7 @@ class Interface:
         self.move(tmp_x, tmp_y)
 
     def refresh_time(self, start, i):
+        time.sleep(.0000001)
         delta = time.time() - start
         tmp_x, tmp_y = self.win.getyx()
         self.insert_string(str(round(i / delta, 3)), self.max_y - 1, 22)
@@ -238,7 +240,7 @@ class Interface:
         self.clear()
         self.refresh()
         self.insert_colored(
-            "Ваша сохраненная статистика {0} {1}:".format(self.max_x, self.max_y),
+            "Ваша сохраненная статистика:",
             0,
             0,
             1,
